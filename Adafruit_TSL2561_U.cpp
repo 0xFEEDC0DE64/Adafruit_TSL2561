@@ -41,6 +41,8 @@
 
 #include "Adafruit_TSL2561_U.h"
 
+#include <espchrono.h>
+
 /*========================================================================*/
 /*                            CONSTRUCTORS                                */
 /*========================================================================*/
@@ -74,9 +76,10 @@ Adafruit_TSL2561_Unified::Adafruit_TSL2561_Unified(uint8_t addr,
     @returns True if sensor is found and initialized, false otherwise.
 */
 /**************************************************************************/
-boolean Adafruit_TSL2561_Unified::begin() {
+boolean Adafruit_TSL2561_Unified::begin(bool skipWireBegin) {
   _i2c = &Wire;
-  _i2c->begin();
+  if (!skipWireBegin)
+    _i2c->begin();
   return init();
 }
 
@@ -88,9 +91,10 @@ boolean Adafruit_TSL2561_Unified::begin() {
     @returns True if sensor is found and initialized, false otherwise.
 */
 /**************************************************************************/
-boolean Adafruit_TSL2561_Unified::begin(TwoWire *theWire) {
+boolean Adafruit_TSL2561_Unified::begin(TwoWire *theWire, bool skipWireBegin) {
   _i2c = theWire;
-  _i2c->begin();
+  if (!skipWireBegin)
+    _i2c->begin();
   return init();
 }
 
@@ -442,6 +446,9 @@ uint32_t Adafruit_TSL2561_Unified::calculateLux(uint16_t broadband,
   } else if (ratio > TSL2561_LUX_K8T) {
     b = TSL2561_LUX_B8T;
     m = TSL2561_LUX_M8T;
+  } else {
+    b = 0;
+    m = 0;
   }
 #endif
 
@@ -473,25 +480,25 @@ uint32_t Adafruit_TSL2561_Unified::calculateLux(uint16_t broadband,
              false if sensor is saturated
 */
 /**************************************************************************/
-bool Adafruit_TSL2561_Unified::getEvent(sensors_event_t *event) {
-  uint16_t broadband, ir;
+std::optional<sensors_event_t> Adafruit_TSL2561_Unified::getEvent() {
+  sensors_event_t event;
+  event.version = sizeof(sensors_event_t);
+  event.sensor_id = _tsl2561SensorID;
+  event.type = SENSOR_TYPE_LIGHT;
+  event.reserved0 = 0;
+  event.timestamp = espchrono::millis_clock::now();
 
-  /* Clear the event */
-  memset(event, 0, sizeof(sensors_event_t));
-
-  event->version = sizeof(sensors_event_t);
-  event->sensor_id = _tsl2561SensorID;
-  event->type = SENSOR_TYPE_LIGHT;
-  event->timestamp = millis();
-
-  /* Calculate the actual lux value */
-  getLuminosity(&broadband, &ir);
-  event->light = calculateLux(broadband, ir);
-
-  if (event->light == 65536) {
-    return false;
+  {
+    /* Calculate the actual lux value */
+    uint16_t broadband, ir;
+    getLuminosity(&broadband, &ir);
+    event.light = calculateLux(broadband, ir);
   }
-  return true;
+
+  if (event.light == 65536) {
+    return std::nullopt;
+  }
+  return event;
 }
 
 /**************************************************************************/
@@ -501,20 +508,20 @@ bool Adafruit_TSL2561_Unified::getEvent(sensors_event_t *event) {
                    details about the TSL2561 and its capabilities
 */
 /**************************************************************************/
-void Adafruit_TSL2561_Unified::getSensor(sensor_t *sensor) {
-  /* Clear the sensor_t object */
-  memset(sensor, 0, sizeof(sensor_t));
-
+sensor_t Adafruit_TSL2561_Unified::getSensor() {
+  sensor_t sensor;
   /* Insert the sensor name in the fixed length char array */
-  strncpy(sensor->name, "TSL2561", sizeof(sensor->name) - 1);
-  sensor->name[sizeof(sensor->name) - 1] = 0;
-  sensor->version = 1;
-  sensor->sensor_id = _tsl2561SensorID;
-  sensor->type = SENSOR_TYPE_LIGHT;
-  sensor->min_delay = 0;
-  sensor->max_value = 17000.0; /* Based on trial and error ... confirm! */
-  sensor->min_value = 1.0;
-  sensor->resolution = 1.0;
+  strncpy(sensor.name, "TSL2561", sizeof(sensor.name) - 1);
+  sensor.name[sizeof(sensor.name) - 1] = 0;
+
+  sensor.version = 1;
+  sensor.sensor_id = _tsl2561SensorID;
+  sensor.type = SENSOR_TYPE_LIGHT;
+  sensor.max_value = 17000.0; /* Based on trial and error ... confirm! */
+  sensor.min_value = 1.0;
+  sensor.resolution = 1.0;
+  sensor.min_delay = 0;
+  return sensor;
 }
 
 /*========================================================================*/

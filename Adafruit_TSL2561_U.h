@@ -167,8 +167,8 @@ typedef enum {
 class Adafruit_TSL2561_Unified : public Adafruit_Sensor {
 public:
   Adafruit_TSL2561_Unified(uint8_t addr, int32_t sensorID = -1);
-  boolean begin(void);
-  boolean begin(TwoWire *theWire);
+  boolean begin(bool skipWireBegin = false);
+  boolean begin(TwoWire *theWire, bool skipWireBegin = false);
   boolean init();
 
   /* TSL2561 Functions */
@@ -179,8 +179,8 @@ public:
   uint32_t calculateLux(uint16_t broadband, uint16_t ir);
 
   /* Unified Sensor API Functions */
-  bool getEvent(sensors_event_t *);
-  void getSensor(sensor_t *);
+  std::optional<sensors_event_t> getEvent() override;
+  sensor_t getSensor() override;
 
 private:
   TwoWire *_i2c;
