@@ -146,17 +146,17 @@ enum {
 };
 
 /** Three options for how long to integrate readings for */
-typedef enum {
+enum tsl2561IntegrationTime_t {
   TSL2561_INTEGRATIONTIME_13MS = 0x00,  // 13.7ms
   TSL2561_INTEGRATIONTIME_101MS = 0x01, // 101ms
   TSL2561_INTEGRATIONTIME_402MS = 0x02  // 402ms
-} tsl2561IntegrationTime_t;
+};
 
 /** TSL2561 offers 2 gain settings */
-typedef enum {
+enum tsl2561Gain_t {
   TSL2561_GAIN_1X = 0x00,  // No gain
   TSL2561_GAIN_16X = 0x10, // 16x gain
-} tsl2561Gain_t;
+};
 
 /**************************************************************************/
 /*!
@@ -166,38 +166,50 @@ typedef enum {
 /**************************************************************************/
 class Adafruit_TSL2561_Unified : public Adafruit_Sensor {
 public:
-  Adafruit_TSL2561_Unified(uint8_t addr, int32_t sensorID = -1);
-  boolean begin(bool skipWireBegin = false);
-  boolean begin(TwoWire *theWire, bool skipWireBegin = false);
-  boolean init();
+  Adafruit_TSL2561_Unified(uint8_t addr, int32_t sensorID = -1) :
+    _addr{addr},
+    _tsl2561SensorID{sensorID}
+  {}
+
+  bool begin(bool skipWireBegin = false);
+  bool begin(TwoWire *theWire, bool skipWireBegin = false);
+  bool init();
 
   /* TSL2561 Functions */
   void enableAutoRange(bool enable);
-  void setIntegrationTime(tsl2561IntegrationTime_t time);
-  void setGain(tsl2561Gain_t gain);
-  void getLuminosity(uint16_t *broadband, uint16_t *ir);
-  uint32_t calculateLux(uint16_t broadband, uint16_t ir);
+  bool setIntegrationTime(tsl2561IntegrationTime_t time);
+private:
+  bool setIntegrationTimePriv(tsl2561IntegrationTime_t time);
+public:
+  bool setGain(tsl2561Gain_t gain);
+private:
+  bool setGainPriv(tsl2561Gain_t gain);
+public:
+
+  struct Luminosity { uint16_t broadband; uint16_t ir; };
+  std::optional<Luminosity> getLuminosity();
+  std::optional<uint32_t> calculateLux(Luminosity luminosity);
 
   /* Unified Sensor API Functions */
   std::optional<sensors_event_t> getEvent() override;
   sensor_t getSensor() override;
 
 private:
-  TwoWire *_i2c;
+  TwoWire *_i2c{};
 
-  int8_t _addr;
-  boolean _tsl2561Initialised;
-  boolean _tsl2561AutoGain;
-  tsl2561IntegrationTime_t _tsl2561IntegrationTime;
-  tsl2561Gain_t _tsl2561Gain;
+  uint8_t _addr;
+  bool _tsl2561Initialised{};
+  bool _tsl2561AutoGain{};
+  tsl2561IntegrationTime_t _tsl2561IntegrationTime{TSL2561_INTEGRATIONTIME_13MS};
+  tsl2561Gain_t _tsl2561Gain{TSL2561_GAIN_1X};
   int32_t _tsl2561SensorID;
 
-  void enable(void);
-  void disable(void);
-  void write8(uint8_t reg, uint8_t value);
-  uint8_t read8(uint8_t reg);
-  uint16_t read16(uint8_t reg);
-  void getData(uint16_t *broadband, uint16_t *ir);
+  bool enable(void);
+  bool disable(void);
+  bool write8(uint8_t reg, uint8_t value);
+  std::optional<uint8_t> read8(uint8_t reg);
+  std::optional<uint16_t> read16(uint8_t reg);
+  std::optional<Luminosity> getData();
 };
 
 #endif // ADAFRUIT_TSL2561_H
