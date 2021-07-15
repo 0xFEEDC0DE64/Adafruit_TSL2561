@@ -30,9 +30,9 @@
 #define TSL2561_FULLSPECTRUM 0 ///< channel 0
 
 // I2C address options
-#define TSL2561_ADDR_LOW (0x29)   ///< Default address (pin pulled low)
-#define TSL2561_ADDR_FLOAT (0x39) ///< Default address (pin left floating)
-#define TSL2561_ADDR_HIGH (0x49)  ///< Default address (pin pulled high)
+constexpr const uint8_t TSL2561_ADDR_LOW = 0x29;   ///< Default address (pin pulled low)
+constexpr const uint8_t TSL2561_ADDR_FLOAT = 0x39; ///< Default address (pin left floating)
+constexpr const uint8_t TSL2561_ADDR_HIGH = 0x49;  ///< Default address (pin pulled high)
 
 // Lux calculations differ slightly for CS package
 //#define TSL2561_PACKAGE_CS                ///< Chip scale package
