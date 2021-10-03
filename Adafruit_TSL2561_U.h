@@ -24,6 +24,9 @@
 #include <Adafruit_Sensor.h>
 #include <Arduino.h>
 #include <Wire.h>
+#include <chrono>
+
+using namespace std::chrono_literals;
 
 #define TSL2561_VISIBLE 2      ///< channel 0 - channel 1
 #define TSL2561_INFRARED 1     ///< channel 1
@@ -123,9 +126,9 @@ constexpr const uint8_t TSL2561_ADDR_HIGH = 0x49;  ///< Default address (pin pul
   (65000) ///< # Counts that trigger a change in gain/integration
 
 // Delay for integration times
-#define TSL2561_DELAY_INTTIME_13MS (15)   ///< Wait 15ms for 13ms integration
-#define TSL2561_DELAY_INTTIME_101MS (120) ///< Wait 120ms for 101ms integration
-#define TSL2561_DELAY_INTTIME_402MS (450) ///< Wait 450ms for 402ms integration
+constexpr const auto TSL2561_DELAY_INTTIME_13MS = 15ms;   ///< Wait 15ms for 13ms integration
+constexpr const auto TSL2561_DELAY_INTTIME_101MS = 120ms; ///< Wait 120ms for 101ms integration
+constexpr const auto TSL2561_DELAY_INTTIME_402MS = 450ms; ///< Wait 450ms for 402ms integration
 
 /** TSL2561 I2C Registers */
 enum {

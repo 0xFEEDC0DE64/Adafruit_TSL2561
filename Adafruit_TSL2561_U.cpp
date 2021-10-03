@@ -42,6 +42,7 @@
 #include "Adafruit_TSL2561_U.h"
 
 #include <espchrono.h>
+#include <tickchrono.h>
 
 //#define DEBUG_OUTPUT
 #ifdef DEBUG_OUTPUT
@@ -360,13 +361,13 @@ std::optional<Adafruit_TSL2561_Unified::Luminosity> Adafruit_TSL2561_Unified::ge
   /* Wait x ms for ADC to complete */
   switch (_tsl2561IntegrationTime) {
   case TSL2561_INTEGRATIONTIME_13MS:
-    delay(TSL2561_DELAY_INTTIME_13MS); // KTOWN: Was 14ms
+    espcpputils::delay(TSL2561_DELAY_INTTIME_13MS); // KTOWN: Was 14ms
     break;
   case TSL2561_INTEGRATIONTIME_101MS:
-    delay(TSL2561_DELAY_INTTIME_101MS); // KTOWN: Was 102ms
+    espcpputils::delay(TSL2561_DELAY_INTTIME_101MS); // KTOWN: Was 102ms
     break;
   default:
-    delay(TSL2561_DELAY_INTTIME_402MS); // KTOWN: Was 403ms
+    espcpputils::delay(TSL2561_DELAY_INTTIME_402MS); // KTOWN: Was 403ms
     break;
   }
 

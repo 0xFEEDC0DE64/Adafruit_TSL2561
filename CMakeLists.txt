@@ -9,6 +9,8 @@ set(sources
 set(dependencies
     arduino-esp32
     Adafruit_Sensor
+    espchrono
+    espcpputils
 )
 
 idf_component_register(
